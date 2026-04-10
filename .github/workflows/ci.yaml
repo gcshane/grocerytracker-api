@@ -21,6 +21,11 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Run tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          JWT_ALGORITHM: "HS256"
         run: pytest
 
       - name: Lint
