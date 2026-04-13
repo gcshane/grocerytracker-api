@@ -6,7 +6,9 @@ from jwt import encode
 from datetime import datetime, timezone, timedelta
 
 from app.db.schema import User
-from app.services.auth_services import login_service, password_hash, get_current_user, decode_jwt_token, secret_key, algorithm
+from app.services.auth_services import login_service, get_current_user, decode_jwt_token, signup_service, password_hash, secret_key, algorithm
+from app.models.auth import SignUpRequest
+
 def test_login_service_successful():
     real_password = "my_secret_password"
     fake_user = User(
@@ -27,6 +29,7 @@ def test_login_service_successful():
         
         token = login_service(dummy_session, fake_form_data)
         
+        mock_get_user.assert_called_once_with("test_user", dummy_session)
         assert token is not None
         assert token.token_type == "bearer"
         assert token.access_token is not None
@@ -68,7 +71,6 @@ async def test_get_current_user_successful():
         mock_get_user.return_value = fake_user
         dummy_session = MagicMock()
 
-        # Notice how we don't need a token anymore! We just prove it can fetch the user!
         user = await get_current_user(dummy_session, user_id="1")
 
         assert user.user_id == 1
@@ -114,3 +116,87 @@ def test_decode_jwt_token_expired_token():
     
     assert exception_info.value.status_code == 401
     assert exception_info.value.detail == "Token expired"
+
+def test_decode_jwt_token_no_sub_claim():
+    data = {"exp": int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())}
+    token_without_sub = encode(data, secret_key, algorithm)
+
+    with pytest.raises(HTTPException) as exception_info:
+        decode_jwt_token(token=token_without_sub)
+    
+    assert exception_info.value.status_code == 401
+    assert exception_info.value.detail == "Could not validate credentials"
+
+def test_login_service_user_not_found():
+    with patch("app.services.auth_services.get_user_by_username") as mock_get_user:
+        mock_get_user.return_value = None
+        
+        fake_form_data = OAuth2PasswordRequestForm(username="nonexistent", password="password123")
+        dummy_session = MagicMock()
+
+        with pytest.raises(HTTPException) as exception_info:
+            login_service(dummy_session, fake_form_data)
+        
+        assert exception_info.value.status_code == 401
+        assert exception_info.value.detail == "Invalid credentials"
+
+def test_signup_service_successful():
+    real_password = "my_secret_password"
+    fake_user = User(
+        user_id=1,
+        username="test_user", 
+        name="Test", 
+        email="test@test.com", 
+        password=password_hash.hash(real_password), 
+        alert=True
+    )
+    
+    with patch("app.services.auth_services.get_user_by_username") as mock_get_user:
+        mock_get_user.return_value = None
+        
+        with patch("app.services.auth_services.create_new_user") as mock_create_user:
+            mock_create_user.return_value = fake_user
+
+            fake_form_data = SignUpRequest(
+                username="test_user",
+                name="Test",
+                email="test@test.com",
+                password=real_password,
+                alert=True
+            )
+            dummy_session = MagicMock()
+            token = signup_service(dummy_session, fake_form_data)
+        
+        assert token is not None
+        assert token.token_type == "bearer"
+        assert token.access_token is not None
+        mock_get_user.assert_called_once_with("test_user", dummy_session)
+        mock_create_user.assert_called_once()
+
+def test_signup_service_duplicate_username_fails():
+    existing_user = User(
+        user_id=1,
+        username="test_user",
+        name="Existing",
+        email="existing@test.com",
+        password="hashed",
+        alert=True
+    )
+
+    with patch("app.services.auth_services.get_user_by_username") as mock_get_user:
+        mock_get_user.return_value = existing_user
+        
+        fake_form_data = SignUpRequest(
+            username="test_user",
+            name="Test",
+            email="test@test.com",
+            password="password123",
+            alert=True
+        )
+        dummy_session = MagicMock()
+
+        with pytest.raises(HTTPException) as exception_info:
+            signup_service(dummy_session, fake_form_data)
+        
+        assert exception_info.value.status_code == 409
+        assert "already exists" in exception_info.value.detail
