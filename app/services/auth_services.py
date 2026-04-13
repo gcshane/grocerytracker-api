@@ -4,10 +4,11 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from jwt import encode, decode, InvalidTokenError, ExpiredSignatureError
 
-from app.services.user_services import get_user_by_username, get_user_by_id
+from app.services.user_services import get_user_by_username, get_user_by_id, create_new_user
 from app.dependencies import SessionDep
 from app.core.config import config
-from app.models.auth import Token
+from app.models.auth import Token, SignUpRequest
+from app.db.schema import User
 
 password_hash = PasswordHash.recommended()
 access_token_expires = timedelta(minutes = int(config.ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -58,3 +59,17 @@ async def get_current_user(session: SessionDep, user_id: str = Depends(decode_jw
             headers = {"WWW-Authenticate": "Bearer"}
         )
     return user
+
+def signup_service(session: SessionDep, data: SignUpRequest):
+    if get_user_by_username(data.username, session):
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT,
+            detail = "Username already exists",
+            headers = {"WWW-Authenticate": "Bearer"}
+        )
+    new_user = User(name=data.name, username=data.username, email=data.email, password=password_hash.hash(data.password), alert=data.alert)
+    new_user = create_new_user(new_user, session)
+    data = {"sub" : str(new_user.user_id), "exp" : int((datetime.now(timezone.utc) + access_token_expires).timestamp())}
+    encoded_jwt = encode(data, secret_key, algorithm)
+    token = Token(access_token = encoded_jwt, token_type = "bearer")
+    return token
