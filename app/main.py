@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.api.v1 import lists, auth
+from app.api.v1 import auth_api, lists_api
 from app.db.database import init_db
 
 @asynccontextmanager
@@ -12,8 +12,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(lists.router)
-app.include_router(auth.router)
+app.include_router(lists_api.router)
+app.include_router(auth_api.router)
 
 origins = [
     "http://localhost.tiangolo.com",
