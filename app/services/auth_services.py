@@ -1,14 +1,20 @@
-from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from pwdlib import PasswordHash
-from jwt import encode, decode, InvalidTokenError, ExpiredSignatureError
+from datetime import UTC, datetime, timedelta
 
-from app.services.user_services import get_user_by_username, get_user_by_id, create_new_user
-from app.dependencies import SessionDep
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt import ExpiredSignatureError, InvalidTokenError, decode, encode
+from pwdlib import PasswordHash
+
 from app.core.config import config
-from app.models.auth import Token, SignUpRequest
 from app.db.schema import User
+from app.dependencies import SessionDep
+from app.models.auth import SignUpRequest, Token
+from app.services.user_services import (
+    create_new_user,
+    get_user_by_email,
+    get_user_by_id,
+    get_user_by_username,
+)
 
 password_hash = PasswordHash.recommended()
 access_token_expires = timedelta(minutes = int(config.ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -24,7 +30,7 @@ def login_service(session: SessionDep, form_data: OAuth2PasswordRequestForm):
             detail = "Invalid credentials",
             headers = {"WWW-Authenticate": "Bearer"}
         )
-    data = {"sub" : str(user.user_id), "exp" : int((datetime.now(timezone.utc) + access_token_expires).timestamp())}
+    data = {"sub" : str(user.user_id), "exp" : int((datetime.now(UTC) + access_token_expires).timestamp())}
     encoded_jwt = encode(data, secret_key, algorithm)
     token = Token(access_token = encoded_jwt, token_type = "bearer")
     return token
@@ -67,9 +73,15 @@ def signup_service(session: SessionDep, data: SignUpRequest):
             detail = "Username already exists",
             headers = {"WWW-Authenticate": "Bearer"}
         )
+    if get_user_by_email(data.email, session):
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT,
+            detail = "Email already exists",
+            headers = {"WWW-Authenticate": "Bearer"}
+        )
     new_user = User(name=data.name, username=data.username, email=data.email, password=password_hash.hash(data.password), alert=data.alert)
     new_user = create_new_user(new_user, session)
-    data = {"sub" : str(new_user.user_id), "exp" : int((datetime.now(timezone.utc) + access_token_expires).timestamp())}
+    data = {"sub" : str(new_user.user_id), "exp" : int((datetime.now(UTC) + access_token_expires).timestamp())}
     encoded_jwt = encode(data, secret_key, algorithm)
     token = Token(access_token = encoded_jwt, token_type = "bearer")
     return token
