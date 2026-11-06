@@ -40,8 +40,7 @@ grocerytracker-api/
 │   └── main.py          # App entrypoint
 ├── design/              # Database design diagrams
 ├── tests/               # Unit tests
-├── pyproject.toml       # uv dependency management
-└── railway.json         # Legacy Railway deployment config
+└── pyproject.toml       # uv dependency management
 ```
 
 ## 📊 Database Schema
@@ -121,6 +120,17 @@ FastAPI auto-generates interactive docs:
 
 - **Swagger UI** — [http://localhost:8000/docs](http://localhost:8000/docs)
 
+### API Collection
+
+A [Bruno](https://www.usebruno.com/) collection is included in `bruno/` for testing endpoints.
+
+1. Install Bruno (app or VS Code extension)
+2. Open Collection → select the `bruno/` folder
+3. Select "local" environment
+4. Run login/signup → token auto-captured for authenticated endpoints
+
+For production testing, copy `bruno/environments/prod.bru.example` to `prod.bru` and set your production URL.
+
 ## 🔑 API Endpoints
 
 ### Authentication
@@ -195,8 +205,6 @@ FastAPI auto-generates interactive docs:
 The API is deployed on **FastAPI Cloud**, with automatic continuous deployment via GitHub Actions.
 
 When code is pushed to the `main` branch, the `.github/workflows/deploy.yaml` pipeline automatically builds and deploys the application to FastAPI Cloud, ensuring the latest changes are live within minutes.
-
-*(Note: There is also legacy support for [Railway](https://railway.com/) deployment via `railway.json`)*
 
 ## 🏛️ Architecture
 
