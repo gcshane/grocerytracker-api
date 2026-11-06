@@ -1,7 +1,7 @@
 from sqlmodel import select
 
+from app.db.schema import List, User
 from app.dependencies import SessionDep
-from app.db.schema import User, List
 
 
 def get_lists_service(session: SessionDep, current_user: User):
@@ -19,7 +19,4 @@ def create_list_service(session: SessionDep, list_name: str, current_user: User)
     session.add(new_list)
     session.commit()
     session.refresh(new_list)
-    return {
-        "message": "List created successfully.",
-        "list": {"list_id": new_list.list_id, "list_name": new_list.list_name},
-    }
+    return {"list_id": new_list.list_id, "list_name": new_list.list_name}
