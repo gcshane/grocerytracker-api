@@ -1,6 +1,7 @@
 from sqlmodel import Session, SQLModel, create_engine
+
 from app.core.config import config
-from app.db.schema import User, List, Item, ItemBatch # noqa: F401
+from app.db.schema import Item, ItemBatch, List, User  # noqa: F401
 
 engine = create_engine(config.DB_URL)
 

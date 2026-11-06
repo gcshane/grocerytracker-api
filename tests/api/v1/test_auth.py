@@ -1,8 +1,9 @@
 from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 
-from app.main import app
 from app.db.schema import User
+from app.main import app
 from app.services.auth_services import password_hash
 
 client = TestClient(app)
