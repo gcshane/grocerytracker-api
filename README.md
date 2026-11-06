@@ -130,12 +130,18 @@ FastAPI auto-generates interactive docs:
 | `POST` | `/auth/signup` | Create a new account | ✗ | `{"username": "...", "password": "...", "email": "...", "name": "...", "alert": true}` |
 | `POST` | `/auth/login` | Login & receive JWT | ✗ | Form data: `username`, `password` |
 
+**Validation rules:**
+- `username`: 3-50 characters, must be unique
+- `password`: minimum 8 characters
+- `email`: valid email format, must be unique
+- `name`: 1-100 characters
+
 ### Lists & Items
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/lists` | Get user's shopping lists | ✓ |
-| `POST` | `/lists` | Create a new shopping list | ✓ |
+| Method | Endpoint | Description | Auth | Status |
+|--------|----------|-------------|------|--------|
+| `GET` | `/lists` | Get user's shopping lists | ✓ | 200 |
+| `POST` | `/lists` | Create a new shopping list | ✓ | 201 |
 
 ### Health Check
 
