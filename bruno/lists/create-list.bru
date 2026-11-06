@@ -1,0 +1,21 @@
+meta {
+  name: Create List
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseURL}}/lists
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+body:json {
+  {
+    "list_name": "Kitchen"
+  }
+}

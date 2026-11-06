@@ -81,3 +81,5 @@ JWT-based auth with Argon2 password hashing (pwdlib). Protected routes require `
 ## Development Guidelines
 
 - Always update README.md when making changes that affect usage, setup, or API endpoints
+- Always update the Bruno collection (`bruno/`) when adding, modifying, or removing API endpoints
+- Always sync the Notion project document when making API changes
