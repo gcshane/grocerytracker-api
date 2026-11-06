@@ -22,3 +22,6 @@ pythonpath = ["."]
 filterwarnings = [
     "ignore::PendingDeprecationWarning:starlette.*"
 ]
+
+[tool.ruff.lint]
+ignore = ["B008"]  # Depends() in defaults is standard FastAPI pattern

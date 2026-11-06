@@ -4,3 +4,6 @@ __pycache__/
 .vscode/settings.json
 *.bkp
 *.dtmp
+
+# Bruno environments (may contain sensitive URLs)
+bruno/environments/prod.bru

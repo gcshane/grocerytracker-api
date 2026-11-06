@@ -1,9 +1,11 @@
-from sqlalchemy import inspect
 from unittest.mock import patch
-from sqlmodel import create_engine, Session, select
+
+from sqlalchemy import inspect
+from sqlmodel import Session, create_engine, select
 
 from app.db.database import init_db
 from app.db.schema import User
+
 
 def test_init_db_physically_creates_tables():
     test_engine = create_engine("sqlite:///:memory:")

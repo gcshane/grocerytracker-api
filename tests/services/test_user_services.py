@@ -1,9 +1,15 @@
 from unittest.mock import patch
-from sqlmodel import create_engine, Session
+
+from sqlmodel import Session, create_engine
 
 from app.db.database import init_db
 from app.db.schema import User
-from app.services.user_services import get_user_by_username, get_user_by_id, create_new_user
+from app.services.user_services import (
+    create_new_user,
+    get_user_by_id,
+    get_user_by_username,
+)
+
 
 def test_get_user_by_username_successful():
     test_engine = create_engine("sqlite:///:memory:")

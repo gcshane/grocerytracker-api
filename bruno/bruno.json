@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Grocery Tracker",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
